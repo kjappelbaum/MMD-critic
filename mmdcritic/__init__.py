@@ -1,0 +1,1 @@
+from .mmdcritic import MMDCritic
