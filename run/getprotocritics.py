@@ -14,8 +14,11 @@ def write_outputfile(array, filename):
 @click.argument("gamma", default=0.024, type=float)
 @click.argument("m", default=10, type=int)
 def main(xpath, gamma, m):
+    print("*** starting mmdcritic ***")
     mmd_critic = MMDCritic.from_file(xpath, gamma)
+    print(" *** getting prototypes ***")
     prototypes = mmd_critic.select_prototypes(m)
+    print(" *** getting critics ***")
     critics = mmd_critic.select_critics(m)
     write_outputfile(prototypes, "prototypes")
     write_outputfile(critics, "prototypes")

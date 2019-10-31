@@ -12,14 +12,19 @@ from six.moves import range
 
 class MMDCritic:
     def __init__(self, X: np.array, gamma=0.026):
-        self.X = X
         self.gamma = gamma
-        self.kernel = rbf_kernel(self.X, gamma=self.gamma)
+        self.kernel = rbf_kernel(X, gamma=self.gamma)
         self.selected_protos = None
-        self.selected_criticism
+        self.selected_criticism = None
 
     @classmethod
-    def from_files(cls, Xpath, gamma):
+    def from_file_subsampled(cls, Xpath, gamma, numpoints): 
+        X = np.load(Xpath)
+        
+        return cls(X, gamma)
+    
+    @classmethod
+    def from_file(cls, Xpath, gamma):
         """Constructs class from .npy file
 
         Arguments:
@@ -40,9 +45,9 @@ class MMDCritic:
 
         return selected
 
-    def select_criticism(self, m, reg='logdet'):
+    def select_criticism(self, m, reg="logdet"):
         if self.selected_protos is None:
-            return ValueError('there are no selected protoypes')
+            return ValueError("there are no selected protoypes")
         selected = MMDCritic._select_criticism_regularized(
             self.kernel, self.selectedprotos, m, reg
         )
@@ -52,7 +57,7 @@ class MMDCritic:
 
     @staticmethod
     def _select_criticism_regularized(
-        K, selectedprotos, m, reg='logdet', is_K_sparse=True
+        K, selectedprotos, m, reg="logdet", is_K_sparse=True
     ):
         """
 
@@ -69,10 +74,10 @@ class MMDCritic:
             [np.array] -- indices selected as criticisms
         """
         n = np.shape(K)[0]
-        if reg in ['None', 'logdet', 'iterative']:
+        if reg in ["None", "logdet", "iterative"]:
             pass
         else:
-            print(('wrong regularizer :' + reg))
+            print(("wrong regularizer :" + reg))
             exit(1)
 
         selected = np.array([], dtype=int)
@@ -100,7 +105,7 @@ class MMDCritic:
             s2array = s2array / (len(selectedprotos))
 
             s1array = np.abs(s1array - s2array)
-            if reg == 'logdet':
+            if reg == "logdet":
                 if (
                     inverse_of_prev_selected is not None
                 ):  # first call has been made already
@@ -131,13 +136,13 @@ class MMDCritic:
             maxx = np.max(s1array)
 
             selected = np.append(selected, argmax)
-            if reg == 'logdet':
+            if reg == "logdet":
                 KK = K[selected, :][:, selected]
                 if is_K_sparse:
                     KK = KK.todense()
 
                 inverse_of_prev_selected = np.linalg.inv(KK)  # shortcut
-            if reg == 'iterative':
+            if reg == "iterative":
                 selectedprotos = np.append(selectedprotos, argmax)
 
         return selected
