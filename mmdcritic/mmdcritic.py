@@ -11,34 +11,54 @@ from six.moves import range
 
 
 class MMDCritic:
-    def __init__(self, X: np.array, gamma=0.026):
+    def __init__(self, X: np.array, gamma=0.026, kernel=None):
         self.gamma = gamma
-        self.kernel = rbf_kernel(X, gamma=self.gamma)
+        if kernel is None:
+            print("Building kernel")
+            self._set_kernel(X)
+        else:
+            print("Using pre-built kernel")
+            self.kernel = kernel
         self.selected_protos = None
         self.selected_criticism = None
 
+    def _set_kernel(self, X, save=True):
+        self.kernel = rbf_kernel(X, gamma=self.gamma)
+        np.save("kernel", self.kernel)
+
     @classmethod
-    def from_file_subsampled(cls, Xpath, gamma, numpoints): 
+    def from_file_subsampled(cls, Xpath, gamma, numpoints, kernelpath=None):
         X = np.load(Xpath)
-        
-        return cls(X, gamma)
-    
+        X = np.random.choice(X, numpoints)
+        if kernelpath is not None:
+            kernel = np.load(kernelpath)
+        else:
+            kernel = None
+
+        return cls(X, gamma, kernel)
+
     @classmethod
-    def from_file(cls, Xpath, gamma):
+    def from_file(cls, Xpath, gamma, kernelpath=None):
         """Constructs class from .npy file
 
         Arguments:
             Xpath {str} -- Path to npy file with X
             gamma {float} -- Gamma kernel parameter
-
+            kernelpath {str} -- Path to npy file with Kernel
+            
         Returns:
             [cls] -- MMDCritic class
         """
         X = np.load(Xpath)
-        return cls(X, gamma)
+        if kernelpath is not None:
+            kernel = np.load(kernelpath)
+        else:
+            kernel = None
+
+        return cls(X, gamma, kernel)
 
     def select_prototypes(self, m):
-        selected = MMDCritic.greedy_select_protos(
+        selected = MMDCritic._greedy_select_protos(
             self.kernel, np.array(list(range(np.shape(self.kernel)[0]))), m
         )
         self.selected_protos = selected
@@ -49,7 +69,7 @@ class MMDCritic:
         if self.selected_protos is None:
             return ValueError("there are no selected protoypes")
         selected = MMDCritic._select_criticism_regularized(
-            self.kernel, self.selectedprotos, m, reg
+            self.kernel, self.selected_protos, m, reg
         )
         self.selected_criticism = selected
 
@@ -57,7 +77,7 @@ class MMDCritic:
 
     @staticmethod
     def _select_criticism_regularized(
-        K, selectedprotos, m, reg="logdet", is_K_sparse=True
+        K, selectedprotos, m, reg="logdet", is_K_sparse=False
     ):
         """
 
@@ -181,7 +201,7 @@ class MMDCritic:
             candidates = np.setdiff1d(list(range(n)), selected)
 
             s1array = colsum[candidates]
-            if selected:
+            if len(selected) > 0:
                 temp = K[selected, :][:, candidates]
                 if is_K_sparse:
                     # s2array = temp.sum(0) *2

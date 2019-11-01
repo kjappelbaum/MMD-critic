@@ -1,5 +1,9 @@
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import print_function
 import numpy as np
 from scipy.spatial.distance import euclidean
+from six.moves import range
 
 
 def heuristic_guess_gamma(X, iterations=5000):
@@ -15,8 +19,9 @@ def heuristic_guess_gamma(X, iterations=5000):
     quantile09 = np.quantile(distances, 0.9)
 
     print(
-        "the 0.1, 0.5 and 0.9 quantiles are {:.4f}, {:.4f}, {:.4f}".format(
-            1/quantile01, 1/quantile05, 1/quantile09
+        (
+            'the 0.1, 0.5 and 0.9 quantiles are {:.4f}, {:.4f}, {:.4f}'.format(
+                1 / quantile01, 1 / quantile05, 1 / quantile09
+            )
         )
     )
-
