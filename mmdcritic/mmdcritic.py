@@ -29,6 +29,7 @@ class MMDCritic:
     @classmethod
     def from_file_subsampled(cls, Xpath, gamma, numpoints, kernelpath=None):
         X = np.load(Xpath)
+        X = X.astype(np.float32)
         X = np.random.choice(X, numpoints)
         if kernelpath is not None:
             kernel = np.load(kernelpath)
@@ -50,6 +51,7 @@ class MMDCritic:
             [cls] -- MMDCritic class
         """
         X = np.load(Xpath)
+        X = X.astype(np.float32)
         if kernelpath is not None:
             kernel = np.load(kernelpath)
         else:

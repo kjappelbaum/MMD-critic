@@ -5,11 +5,7 @@ import os
 import numpy as np
 import click
 from mmdcritic import MMDCritic
-
-
-def write_outputfile(array, filename):
-    """writes array to file"""
-    np.save(filename, array)
+from mmdcritic import write_outputfile
 
 
 @click.command("cli")
@@ -28,7 +24,7 @@ def main(xpath, gamma, m, kernel):
     print(" *** getting critics ***")
     critics = mmd_critic.select_criticism(m)
     write_outputfile(prototypes, "prototypes")
-    write_outputfile(critics, "prototypes")
+    write_outputfile(critics, "critics")
 
 
 if __name__ == "__main__":
