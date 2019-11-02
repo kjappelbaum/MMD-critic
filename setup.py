@@ -14,6 +14,7 @@ setup(
         'console_scripts': [
             'getprotocritics=run.getprotocritics:main',
             'kernelguess=run.kernelguess:main',
+            'classifytest=run.classify_test:main',
         ]
     },
     install_requires=requirements,

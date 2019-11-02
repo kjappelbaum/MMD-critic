@@ -6,6 +6,11 @@ from scipy.spatial.distance import euclidean
 from six.moves import range
 
 
+def write_outputfile(array, filename):
+    """writes array to file"""
+    np.save(filename, array)
+
+
 def heuristic_guess_gamma(X, iterations=5000):
     distances = []
     length = len(X)

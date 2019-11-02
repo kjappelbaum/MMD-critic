@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 import numpy as np
 from sklearn.metrics.pairwise import rbf_kernel
-
+from sklearn.preprocessing import StandardScaler
 
 # from dask import delayed use if potentially to parallelize the greedy loops
 import sys
@@ -14,23 +14,26 @@ class MMDCritic:
     def __init__(self, X: np.array, gamma=0.026, kernel=None):
         self.gamma = gamma
         if kernel is None:
-            print("Building kernel")
+            print('Building kernel')
             self._set_kernel(X)
         else:
-            print("Using pre-built kernel")
+            print('Using pre-built kernel')
             self.kernel = kernel
         self.selected_protos = None
         self.selected_criticism = None
 
     def _set_kernel(self, X, save=True):
         self.kernel = rbf_kernel(X, gamma=self.gamma)
-        np.save("kernel", self.kernel)
+        np.save('kernel', self.kernel)
 
     @classmethod
-    def from_file_subsampled(cls, Xpath, gamma, numpoints, kernelpath=None):
+    def from_file_subsampled(cls, Xpath, gamma, numpoints, kernelpath=None, scale=True):
         X = np.load(Xpath)
         X = X.astype(np.float32)
-        X = np.random.choice(X, numpoints)
+        X = X[np.random.choice(X.shape[0], numpoints, replace=False)]
+        if scale:
+            scaler = StandardScaler()
+            X = scaler.fit_transform(X)
         if kernelpath is not None:
             kernel = np.load(kernelpath)
         else:
@@ -39,19 +42,22 @@ class MMDCritic:
         return cls(X, gamma, kernel)
 
     @classmethod
-    def from_file(cls, Xpath, gamma, kernelpath=None):
+    def from_file(cls, Xpath, gamma, kernelpath=None, scale=True):
         """Constructs class from .npy file
 
         Arguments:
             Xpath {str} -- Path to npy file with X
             gamma {float} -- Gamma kernel parameter
             kernelpath {str} -- Path to npy file with Kernel
-            
+
         Returns:
             [cls] -- MMDCritic class
         """
         X = np.load(Xpath)
         X = X.astype(np.float32)
+        if scale:
+            scaler = StandardScaler()
+            X = scaler.fit_transform(X)
         if kernelpath is not None:
             kernel = np.load(kernelpath)
         else:
@@ -67,9 +73,9 @@ class MMDCritic:
 
         return selected
 
-    def select_criticism(self, m, reg="logdet"):
+    def select_criticism(self, m, reg='logdet'):
         if self.selected_protos is None:
-            return ValueError("there are no selected protoypes")
+            return ValueError('there are no selected protoypes')
         selected = MMDCritic._select_criticism_regularized(
             self.kernel, self.selected_protos, m, reg
         )
@@ -79,7 +85,7 @@ class MMDCritic:
 
     @staticmethod
     def _select_criticism_regularized(
-        K, selectedprotos, m, reg="logdet", is_K_sparse=False
+        K, selectedprotos, m, reg='logdet', is_K_sparse=False
     ):
         """
 
@@ -96,10 +102,10 @@ class MMDCritic:
             [np.array] -- indices selected as criticisms
         """
         n = np.shape(K)[0]
-        if reg in ["None", "logdet", "iterative"]:
+        if reg in ['None', 'logdet', 'iterative']:
             pass
         else:
-            print(("wrong regularizer :" + reg))
+            print(('wrong regularizer :' + reg))
             exit(1)
 
         selected = np.array([], dtype=int)
@@ -127,7 +133,7 @@ class MMDCritic:
             s2array = s2array / (len(selectedprotos))
 
             s1array = np.abs(s1array - s2array)
-            if reg == "logdet":
+            if reg == 'logdet':
                 if (
                     inverse_of_prev_selected is not None
                 ):  # first call has been made already
@@ -158,13 +164,13 @@ class MMDCritic:
             maxx = np.max(s1array)
 
             selected = np.append(selected, argmax)
-            if reg == "logdet":
+            if reg == 'logdet':
                 KK = K[selected, :][:, selected]
                 if is_K_sparse:
                     KK = KK.todense()
 
                 inverse_of_prev_selected = np.linalg.inv(KK)  # shortcut
-            if reg == "iterative":
+            if reg == 'iterative':
                 selectedprotos = np.append(selectedprotos, argmax)
 
         return selected

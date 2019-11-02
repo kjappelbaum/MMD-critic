@@ -8,24 +8,24 @@ from mmdcritic import MMDCritic
 from mmdcritic import write_outputfile
 
 
-@click.command("cli")
-@click.argument("xpath", type=click.Path(exists=True))
-@click.argument("gamma", default=0.024, type=float)
-@click.argument("m", default=10, type=int)
-@click.option("--kernel", type=click.Path(exists=True), default=None)
+@click.command('cli')
+@click.argument('xpath', type=click.Path(exists=True))
+@click.argument('gamma', default=0.024, type=float)
+@click.argument('m', default=10, type=int)
+@click.option('--kernel', type=click.Path(exists=True), default=None)
 def main(xpath, gamma, m, kernel):
-    print("*** starting mmdcritic ***")
+    print('*** starting mmdcritic ***')
     if kernel is not None:
-        mmd_critic = MMDCritic.from_file(xpath, gamma, kernel)
+        mmd_critic = MMDCritic.from_file(xpath, gamma, kernelpath=kernel)
     else:
         mmd_critic = MMDCritic.from_file(xpath, gamma)
-    print(" *** getting prototypes ***")
+    print(' *** getting prototypes ***')
     prototypes = mmd_critic.select_prototypes(m)
-    print(" *** getting critics ***")
+    print(' *** getting critics ***')
     critics = mmd_critic.select_criticism(m)
-    write_outputfile(prototypes, "prototypes")
-    write_outputfile(critics, "critics")
+    write_outputfile(prototypes, 'prototypes')
+    write_outputfile(critics, 'critics')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

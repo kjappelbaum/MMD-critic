@@ -15,8 +15,23 @@ from sklearn.preprocessing import StandardScaler
 @click.argument('xtest')
 @click.argument('ytest')
 def main(xpath, ypath, xtest, ytest):
-    KERNELWIDTHS = [0.1963, 0.1, 0.0573, 0.0270, 0.01]
+    KERNELWIDTHS = [
+        0.1963,
+        0.15,
+        0.1,
+        0.085,
+        0.07,
+        0.0573,
+        0.045,
+        0.035,
+        0.0270,
+        0.01,
+        0.007,
+        0.005,
+        0.002,
+    ]
     NUMBERPROTOS = 500
+    print(' *** starting 1NN classification test ****')
     X = np.load(xpath)
     y = np.load(ypath)
     Xtest = np.load(xtest)
@@ -25,7 +40,9 @@ def main(xpath, ypath, xtest, ytest):
     scaler = StandardScaler()
 
     X = scaler.fit_transform(X)
-    Xtest = scaler.transform(X)
+    Xtest = scaler.transform(Xtest)
+
+    X = X[np.random.choice(X.shape[0], 20000, replace=False)]
 
     for WIDTH in KERNELWIDTHS:
         mmd_critic = MMDCritic(X, WIDTH)
